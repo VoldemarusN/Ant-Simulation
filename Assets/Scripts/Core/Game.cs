@@ -5,7 +5,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using ObservableCollections;
 using R3;
+using UnityEngine;
 using Views;
+using Views.Bug;
 using Zenject;
 
 namespace Core
@@ -14,93 +16,55 @@ namespace Core
     {
         private readonly SimulationSettings _settings;
         private readonly BaseAntFactory _antFactory;
+        private readonly ILevelInfo _levelInfo;
         private readonly VegetableFoodFactory _vegetableFoodFactory;
         private readonly LevelPositionService _levelPositionService;
 
-        private CancellationDisposable _cancellationDisposable;
+        private readonly CancellationDisposable _cancellationDisposable;
 
-        private ObservableList<WorkerBug> _workerBugs;
-        private ObservableList<PredatorBug> _predatorBugs;
-
-        private ObservableList<VegetableTarget> _vegetableTargets;
-
-        public Game(BaseAntFactory antFactory, SimulationSettings settings)
+        public Game(LevelPositionService levelPositionService, SimulationSettings settings, VegetableFoodFactory vegetableFoodFactory,
+            BaseAntFactory antFactory,
+            ILevelInfo levelInfo)
         {
             _antFactory = antFactory;
+            _levelInfo = levelInfo;
+            _vegetableFoodFactory = vegetableFoodFactory;
             _settings = settings;
-
-            _workerBugs = new ObservableList<WorkerBug>();
-            _predatorBugs = new ObservableList<PredatorBug>();
+            _levelPositionService = levelPositionService;
+            _cancellationDisposable = new CancellationDisposable();
         }
 
         public void Initialize()
         {
-            _vegetableTargets.CollectionChanged += OnVegetablesChanged;
-            _workerBugs.CollectionChanged
-
             //spawn food
-            Observable.Timer(TimeSpan.FromSeconds(_settings.FoodSpawnPeriod))
-                .Subscribe(_ =>
-                    {
-                        var foodInstance = _vegetableFoodFactory.Spawn(_levelPositionService.GetRandomPosition());
-                        _vegetableTargets.Add(foodInstance);
-                    }
-                )
-                .RegisterTo(_cancellationDisposable.Token);
-
-            //spawn worker if there is no bugs
-
-            Observable.Interval(TimeSpan.FromSeconds(1))
+            Observable.Interval(TimeSpan.FromSeconds(_settings.FoodSpawnPeriod))
                 .Subscribe(_ =>
                 {
-                    var totalBugs = _workerBugs.Count + _predatorBugs.Count;
-                    if (totalBugs == 0)
-                    {
-                        var bug = _antFactory.CreateWorkerBug();
-                        bug.transform.position = _levelPositionService.GetRandomPosition();
-                        _workerBugs.Add(bug);
-                    }
+                    var (x, y, z) = _levelPositionService.GetRandomPoint();
+                    var foodInstance = _vegetableFoodFactory.Spawn(new Vector3(x, y, z));
+                    _levelInfo.Vegetables.Add(foodInstance);
                 })
                 .RegisterTo(_cancellationDisposable.Token);
 
-            //move bugs
-            Observable.EveryUpdate().Subscribe(_ =>
-            {
-                foreach (var workerBug in _workerBugs)
+            //spawn worker if there is no bugs
+            Observable.Interval(TimeSpan.FromSeconds(1))
+                .Subscribe(_ =>
                 {
-                    if (!workerBug.HasFoodTarget)
+                    var totalBugs = _levelInfo.Workers.Count + _levelInfo.Predators.Count;
+                    if (totalBugs == 0)
                     {
-                        workerBug.FindNearestFood(_vegetableTargets);
+                        var bug = _antFactory.CreateWorkerBug();
+                        bug.View.UpdatePosition(_levelPositionService.GetRandomPosition());
+                        _levelInfo.Workers.Add(bug);
                     }
-
-                    workerBug.MoveToTarget();
-                }
-            }).RegisterTo(_cancellationDisposable.Token);
+                })
+                .RegisterTo(_cancellationDisposable.Token);
         }
 
         public void Dispose()
         {
             _levelPositionService?.Dispose();
             _cancellationDisposable?.Dispose();
-        }
-
-        private void OnVegetablesChanged(in NotifyCollectionChangedEventArgs<VegetableTarget> changedArgs)
-        {
-            if (changedArgs.Action == NotifyCollectionChangedAction.Remove)
-            {
-                foreach (var worker in _workerBugs.Where(b => !b.HasFoodTarget))
-                    worker.FindNearestFood(_vegetableTargets);
-
-                foreach (var predator in _predatorBugs.Where(b => !b.HasFoodTarget))
-                    predator.FindNearestFood(_vegetableTargets);
-            }
-            else if (changedArgs.Action == NotifyCollectionChangedAction.Add)
-            {
-                foreach (var bug in _workerBugs)
-                {
-                    bug.FindNearestFood(Enumerable.Repeat(changedArgs.NewItem, 1));
-                }
-            }
         }
     }
 }

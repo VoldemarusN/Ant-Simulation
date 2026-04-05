@@ -7,19 +7,24 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-    internal class LevelPositionService : IDisposable
+    public class LevelPositionService : IDisposable
     {
         private const int MAX_RANDOM_ATTEMPTS = 128;
 
         private readonly GameObject _floor;
         private readonly SimulationSettings _settings;
+        private readonly ILevelInfo _levelInfo;
 
         private readonly CancellationTokenSource _disposeCts = new();
+        private Bounds _floorBounds;
 
-        public LevelPositionService(GameObject floor, SimulationSettings settings)
+        public LevelPositionService(GameObject floor, SimulationSettings settings, ILevelInfo levelInfo)
         {
             _floor = floor;
             _settings = settings;
+            _levelInfo = levelInfo;
+
+            _floorBounds = GetFloorBounds();
         }
 
         /// <param name="spawnedObjects">
@@ -30,26 +35,20 @@ namespace Core
         {
             if (_disposeCts.IsCancellationRequested) return Vector3.zero;
 
-            var bounds = GetFloorBounds();
-            var safeZone = _settings.SpawnSafeZone;
-            var safeZoneSqr = safeZone * safeZone;
+            var safeZoneSqr = _settings.SpawnSafeZone * _settings.SpawnSafeZone;
 
             for (var i = 0; i < MAX_RANDOM_ATTEMPTS; i++)
             {
-                var randomPosition = GetRandomPoint(bounds);
+                var randomPosition = GetRandomPoint();
+                var intersects = HasIntersection(randomPosition, _levelInfo.GetAllSpawnedObjects().Select(x => x.position), safeZoneSqr);
 
-                var intersectsTask = Task.Run(
-                    () => HasIntersection(randomPosition, spawnedObjects.Select(x => x.position), safeZoneSqr),
-                    _disposeCts.Token
-                );
-                var intersects = intersectsTask.GetAwaiter().GetResult();
                 if (!intersects)
                 {
-                    return randomPosition;
+                    return new Vector3(randomPosition.x, _floor.transform.position.y, randomPosition.z);
                 }
             }
 
-            return bounds.center;
+            return _floorBounds.center;
         }
 
         private Bounds GetFloorBounds()
@@ -60,7 +59,7 @@ namespace Core
             return new Bounds(position, size);
         }
 
-        private static bool HasIntersection(Vector3 candidate, IEnumerable<Vector3> positions, float safeZoneSqr)
+        private static bool HasIntersection((float x, float y, float z) candidate, IEnumerable<Vector3> positions, float safeZoneSqr)
         {
             foreach (var existingPosition in positions)
             {
@@ -77,12 +76,12 @@ namespace Core
             return false;
         }
 
-        private Vector3 GetRandomPoint(Bounds bounds)
+        public (float x, float y, float z) GetRandomPoint()
         {
-            var x = UnityEngine.Random.Range(bounds.min.x, bounds.max.x);
-            var z = UnityEngine.Random.Range(bounds.min.z, bounds.max.z);
+            var x = _floorBounds.center.x + (UnityEngine.Random.value - 0.5f) * _floorBounds.size.x;
             var y = _floor.transform.position.y;
-            return new Vector3(x, y, z);
+            var z = _floorBounds.center.z + (UnityEngine.Random.value - 0.5f) * _floorBounds.size.z;
+            return (x, y, z);
         }
 
         public void Dispose()

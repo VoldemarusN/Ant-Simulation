@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b1c7aeaf7ddede4fabd852b3d9b77f0, type: 3}
+  m_Name: BugAssetProvider
+  m_EditorClassIdentifier: 
+  _workerBugPrefab: {fileID: 4989239488334498601, guid: ed8e24a3b3bda8841adf7092057dfa63, type: 3}
+  _predatorBugPrefab: {fileID: 478120842186189880, guid: de8893fadcd71cc44baccc3dead2497b, type: 3}
+  _vegetablePrefab: {fileID: 8650119024225055913, guid: 81147a6bf9154504ba7ce38c2363db25, type: 3}
