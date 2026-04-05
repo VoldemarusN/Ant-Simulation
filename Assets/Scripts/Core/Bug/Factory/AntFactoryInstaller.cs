@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Core.Bug.Factory;
+using UnityEngine;
 using Zenject;
 
 namespace Views.Bug.Factory
@@ -9,7 +10,7 @@ namespace Views.Bug.Factory
 
         public override void InstallBindings()
         {
-            Container.Bind<BaseAntFactory>().To<AntFactory>().AsSingle();
+            Container.Bind<IAntFactory>().To<AntFactory>().AsSingle();
         }
     }
 }

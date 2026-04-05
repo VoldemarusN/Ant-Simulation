@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
+using Core.Bug.Factory;
+using DefaultNamespace;
 using UniRx;
 using UnityEngine;
 using Views;
@@ -15,19 +17,20 @@ namespace Core
     public class Game : IInitializable, IDisposable
     {
         private readonly SimulationSettings _settings;
-        private readonly BaseAntFactory _antFactory;
+        private readonly IAntFactory _antFactory;
         private readonly ILevelInfo _levelInfo;
+        private readonly GameUI _gameUI;
         private readonly VegetableFoodFactory _vegetableFoodFactory;
         private readonly LevelPositionService _levelPositionService;
 
-        private readonly CompositeDisposable  _cancellationDisposable;
+        private readonly CompositeDisposable _cancellationDisposable;
 
         public Game(LevelPositionService levelPositionService, SimulationSettings settings, VegetableFoodFactory vegetableFoodFactory,
-            BaseAntFactory antFactory,
-            ILevelInfo levelInfo)
+            IAntFactory antFactory, ILevelInfo levelInfo, GameUI gameUI)
         {
             _antFactory = antFactory;
             _levelInfo = levelInfo;
+            _gameUI = gameUI;
             _vegetableFoodFactory = vegetableFoodFactory;
             _settings = settings;
             _levelPositionService = levelPositionService;
@@ -43,6 +46,8 @@ namespace Core
                     var pos = _levelPositionService.GetRandomPoint();
                     var foodInstance = _vegetableFoodFactory.Spawn(pos);
                     _levelInfo.Vegetables.Add(foodInstance);
+                    foodInstance.Eaten.Subscribe(OnVegetableTargetEaten)
+                        .AddTo(_cancellationDisposable);
                 })
                 .AddTo(_cancellationDisposable);
 
@@ -59,7 +64,20 @@ namespace Core
                     }
                 })
                 .AddTo(_cancellationDisposable);
+
+            Observable.EveryUpdate().Subscribe(_ =>
+            {
+                _gameUI.SetPredatorCount(_levelInfo.Predators.Count);
+                _gameUI.SetWorkerCount(_levelInfo.Workers.Count);
+            });
         }
+
+        private void OnVegetableTargetEaten(FoodTarget vegetable)
+        {
+            _levelInfo.Vegetables.Remove(vegetable as VegetableTarget);
+            _vegetableFoodFactory.Despawn(vegetable as VegetableTarget);
+        }
+
 
         public void Dispose()
         {
