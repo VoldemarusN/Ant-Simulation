@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using R3;
+using Core.Bug.Strategies;
+using UniRx;
 using UnityEngine;
 using Zenject;
 using Views.Bug.Strategies;
@@ -11,10 +12,10 @@ namespace Views.Bug
     public class BugController : IDisposable
     {
         public BugView View { get; }
-        
+
         private readonly ISearchFoodStrategy _searchFoodStrategy;
         private readonly IMoveStrategy _moveStrategy;
-        private readonly CancellationDisposable _cancellationDisposable;
+        private readonly CompositeDisposable _cancellationDisposable;
 
 
         public BugController(BugView view, ISearchFoodStrategy searchFoodStrategy, IMoveStrategy moveStrategy)
@@ -22,10 +23,20 @@ namespace Views.Bug
             View = view;
             _searchFoodStrategy = searchFoodStrategy;
             _moveStrategy = moveStrategy;
-            _cancellationDisposable = new CancellationDisposable();
+            _cancellationDisposable = new CompositeDisposable();
 
-            Observable.EveryUpdate().Take(5).Subscribe(_ => _searchFoodStrategy.SearchFood()).RegisterTo(_cancellationDisposable.Token);
-            Observable.EveryUpdate().Subscribe(_ => _moveStrategy.Move()).RegisterTo(_cancellationDisposable.Token);
+            int counter = 0;
+            Observable.EveryUpdate()
+                .Where(_ => ++counter % 5 == 0)
+                .Subscribe(_ =>
+                {
+                    _searchFoodStrategy.SearchFood();
+                    _moveStrategy.SetTarget(_searchFoodStrategy.Target);
+                })
+                .AddTo(_cancellationDisposable);
+            
+            Observable.EveryUpdate().Subscribe(_ => _moveStrategy.Move())
+                .AddTo(_cancellationDisposable);
         }
 
         public void Dispose()

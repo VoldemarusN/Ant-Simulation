@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Random = UnityEngine.Random;
 
 namespace Core
 {
@@ -11,20 +12,17 @@ namespace Core
     {
         private const int MAX_RANDOM_ATTEMPTS = 128;
 
-        private readonly GameObject _floor;
+        private readonly Renderer _renderer;
         private readonly SimulationSettings _settings;
         private readonly ILevelInfo _levelInfo;
 
         private readonly CancellationTokenSource _disposeCts = new();
-        private Bounds _floorBounds;
 
-        public LevelPositionService(GameObject floor, SimulationSettings settings, ILevelInfo levelInfo)
+        public LevelPositionService(Renderer renderer, SimulationSettings settings, ILevelInfo levelInfo)
         {
-            _floor = floor;
+            _renderer = renderer;
             _settings = settings;
             _levelInfo = levelInfo;
-
-            _floorBounds = GetFloorBounds();
         }
 
         /// <param name="spawnedObjects">
@@ -44,22 +42,14 @@ namespace Core
 
                 if (!intersects)
                 {
-                    return new Vector3(randomPosition.x, _floor.transform.position.y, randomPosition.z);
+                    return new Vector3(randomPosition.x, _renderer.transform.position.y, randomPosition.z);
                 }
             }
 
-            return _floorBounds.center;
+            return default;
         }
 
-        private Bounds GetFloorBounds()
-        {
-            var position = _floor.transform.position;
-            var scale = _floor.transform.lossyScale;
-            var size = new Vector3(Mathf.Abs(scale.x), 0f, Mathf.Abs(scale.z));
-            return new Bounds(position, size);
-        }
-
-        private static bool HasIntersection((float x, float y, float z) candidate, IEnumerable<Vector3> positions, float safeZoneSqr)
+        private static bool HasIntersection(Vector3 candidate, IEnumerable<Vector3> positions, float safeZoneSqr)
         {
             foreach (var existingPosition in positions)
             {
@@ -76,12 +66,15 @@ namespace Core
             return false;
         }
 
-        public (float x, float y, float z) GetRandomPoint()
+        public Vector3 GetRandomPoint()
         {
-            var x = _floorBounds.center.x + (UnityEngine.Random.value - 0.5f) * _floorBounds.size.x;
-            var y = _floor.transform.position.y;
-            var z = _floorBounds.center.z + (UnityEngine.Random.value - 0.5f) * _floorBounds.size.z;
-            return (x, y, z);
+            var bounds = _renderer.bounds;
+
+            var x = Random.Range(bounds.min.x, bounds.max.x);
+            var z = Random.Range(bounds.min.z, bounds.max.z);
+            var y = bounds.center.y;
+
+            return new Vector3(x, y, z);
         }
 
         public void Dispose()

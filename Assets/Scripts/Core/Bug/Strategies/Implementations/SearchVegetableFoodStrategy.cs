@@ -1,29 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ObservableCollections;
 using Views;
 
 namespace Views.Bug.Strategies.Implementations
 {
-    public class SearchVegetableFoodStrategy : SearchNearestFoodStrategy, IDisposable
+    public class SearchVegetableFoodStrategy : SearchNearestFoodStrategy
     {
-        private readonly ObservableList<VegetableTarget> _targets;
+        private readonly List<VegetableTarget> _targets;
 
-        public SearchVegetableFoodStrategy(BugView bugView, ObservableList<VegetableTarget> targets) : base(bugView, new IEnumerable<FoodTarget>[] { targets })
+        public SearchVegetableFoodStrategy(BugView bugView, List<VegetableTarget> targets) : base(bugView, new IEnumerable<FoodTarget>[] { targets })
         {
             _targets = targets;
-            _targets.CollectionChanged += OnTargetsChanged;
         }
-
-        public void Dispose()
-        {
-            _targets.CollectionChanged -= OnTargetsChanged;
-        }
-
-        private void OnTargetsChanged(in NotifyCollectionChangedEventArgs<VegetableTarget> e)
-        {
-            SearchFood();
-        }
+    
     }
 }

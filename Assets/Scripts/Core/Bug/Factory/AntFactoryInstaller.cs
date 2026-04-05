@@ -9,7 +9,7 @@ namespace Views.Bug.Factory
 
         public override void InstallBindings()
         {
-            Container.Bind<BaseAntFactory>().To<AntFactory>().AsSingle().WithArguments(_bugSpawnPoint.position);
+            Container.Bind<BaseAntFactory>().To<AntFactory>().AsSingle();
         }
     }
 }

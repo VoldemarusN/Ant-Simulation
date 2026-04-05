@@ -6,11 +6,11 @@ namespace DefaultNamespace
 {
     public class LevelPositionServiceInstaller : MonoInstaller
     {
-        [SerializeField] private GameObject _floor;
+        [SerializeField] private Renderer _floorRenderer;
         
         public override void InstallBindings()
         {
-            Container.Bind<LevelPositionService>().AsSingle().WithArguments(_floor).NonLazy();
+            Container.Bind<LevelPositionService>().AsSingle().WithArguments(_floorRenderer).NonLazy();
         }
     }
 }

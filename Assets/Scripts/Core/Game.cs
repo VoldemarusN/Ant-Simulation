@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using ObservableCollections;
-using R3;
+using System.Threading;
+using UniRx;
 using UnityEngine;
 using Views;
 using Views.Bug;
@@ -20,7 +20,7 @@ namespace Core
         private readonly VegetableFoodFactory _vegetableFoodFactory;
         private readonly LevelPositionService _levelPositionService;
 
-        private readonly CancellationDisposable _cancellationDisposable;
+        private readonly CompositeDisposable  _cancellationDisposable;
 
         public Game(LevelPositionService levelPositionService, SimulationSettings settings, VegetableFoodFactory vegetableFoodFactory,
             BaseAntFactory antFactory,
@@ -31,7 +31,7 @@ namespace Core
             _vegetableFoodFactory = vegetableFoodFactory;
             _settings = settings;
             _levelPositionService = levelPositionService;
-            _cancellationDisposable = new CancellationDisposable();
+            _cancellationDisposable = new CompositeDisposable();
         }
 
         public void Initialize()
@@ -40,11 +40,11 @@ namespace Core
             Observable.Interval(TimeSpan.FromSeconds(_settings.FoodSpawnPeriod))
                 .Subscribe(_ =>
                 {
-                    var (x, y, z) = _levelPositionService.GetRandomPoint();
-                    var foodInstance = _vegetableFoodFactory.Spawn(new Vector3(x, y, z));
+                    var pos = _levelPositionService.GetRandomPoint();
+                    var foodInstance = _vegetableFoodFactory.Spawn(pos);
                     _levelInfo.Vegetables.Add(foodInstance);
                 })
-                .RegisterTo(_cancellationDisposable.Token);
+                .AddTo(_cancellationDisposable);
 
             //spawn worker if there is no bugs
             Observable.Interval(TimeSpan.FromSeconds(1))
@@ -58,7 +58,7 @@ namespace Core
                         _levelInfo.Workers.Add(bug);
                     }
                 })
-                .RegisterTo(_cancellationDisposable.Token);
+                .AddTo(_cancellationDisposable);
         }
 
         public void Dispose()

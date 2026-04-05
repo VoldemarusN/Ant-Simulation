@@ -1,4 +1,10 @@
-﻿public interface IMoveStrategy
+﻿using Views;
+
+namespace Core.Bug.Strategies
 {
-    void Move();
+    public interface IMoveStrategy
+    {
+        void Move();
+        void SetTarget(FoodTarget target);
+    }
 }

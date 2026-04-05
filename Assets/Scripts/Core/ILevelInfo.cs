@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using ObservableCollections;
 using UnityEngine;
 using Views;
 using Views.Bug;
@@ -8,9 +7,9 @@ namespace Core
 {
     public interface ILevelInfo
     {
-        ObservableList<VegetableTarget> Vegetables { get; }
-        ObservableList<BugController> Workers { get; }
-        ObservableList<BugController> Predators { get; }
+        List<VegetableTarget> Vegetables { get; }
+        List<BugController> Workers { get; }
+        List<BugController> Predators { get; }
 
         IEnumerable<Transform> GetAllSpawnedObjects();
     }

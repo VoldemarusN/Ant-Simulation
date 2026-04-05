@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 137389056}
   - component: {fileID: 137389055}
+  - component: {fileID: 137389057}
   m_Layer: 0
   m_Name: LevelPositionService
   m_TagString: Untagged
@@ -148,7 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 244415f727054dc885bd28e66d1571d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _floor: {fileID: 700332290}
+  _floorRenderer: {fileID: 700332293}
 --- !u!4 &137389056
 Transform:
   m_ObjectHideFlags: 0
@@ -164,6 +165,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1281281384}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &137389057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137389054}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28c514a48d0641fcaf6d72d380aee14a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _generate: 0
+  _pointsCount: 20
 --- !u!1 &186859145
 GameObject:
   m_ObjectHideFlags: 0
