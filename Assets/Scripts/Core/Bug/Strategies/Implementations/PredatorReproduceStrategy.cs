@@ -1,6 +1,5 @@
-﻿using Core.Bug.Factory;
+using Core.Bug.Factory;
 using Core.Bug.Settings;
-using Core.Level;
 using UniRx;
 
 namespace Core.Bug.Strategies.Implementations
@@ -10,13 +9,11 @@ namespace Core.Bug.Strategies.Implementations
         public Subject<BugController> Reproduced { get; set; } = new();
 
         private readonly PredatorSettings _predatorSettings;
-        private readonly ILevelInfo _levelInfo;
         private readonly IAntFactory _antFactory;
 
-        public PredatorReproduceStrategy(PredatorSettings predatorSettings, ILevelInfo levelInfo, IAntFactory antFactory)
+        public PredatorReproduceStrategy(PredatorSettings predatorSettings, IAntFactory antFactory)
         {
             _predatorSettings = predatorSettings;
-            _levelInfo = levelInfo;
             _antFactory = antFactory;
         }
 
@@ -25,7 +22,6 @@ namespace Core.Bug.Strategies.Implementations
             if (count >= _predatorSettings.FoodAmountToSplit)
             {
                 var instance = _antFactory.CreatePredatorBug();
-                _levelInfo.Predators.Add(instance);
                 Reproduced.OnNext(instance);
             }
         }

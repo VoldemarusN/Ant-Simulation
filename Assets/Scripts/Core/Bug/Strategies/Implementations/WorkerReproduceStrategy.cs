@@ -1,4 +1,4 @@
-﻿using Core.Bug.Factory;
+using Core.Bug.Factory;
 using Core.Bug.Settings;
 using Core.Level;
 using UniRx;
@@ -30,14 +30,12 @@ namespace Core.Bug.Strategies.Implementations
                     if (Random.Range(0, 100) < _workerSettings.ChanceToCreatePredator * 100)
                     {
                         var predator = _antFactory.CreatePredatorBug();
-                        _levelInfo.Predators.Add(predator);
                         Reproduced.OnNext(predator);
                         return;
                     }
                 }
 
                 var worker = _antFactory.CreateWorkerBug();
-                _levelInfo.Workers.Add(worker);
                 Reproduced.OnNext(worker);
             }
         }

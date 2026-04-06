@@ -40,8 +40,10 @@ namespace Core.Services
         public void RegisterBug(BugController bug)
         {
             bug.Reproduced
+                .TakeUntil(bug.View.Eaten)
                 .Subscribe(HandleBugReproduction)
                 .AddTo(_disposables);
+
             bug.View.Eaten
                 .Subscribe(_ => HandleBugEat(bug))
                 .AddTo(_disposables);
@@ -67,11 +69,22 @@ namespace Core.Services
         private void HandleBugReproduction(BugController newBug)
         {
             newBug.View.WarpTo(_levelPositionService.GetRandomPosition());
+
+            if (_antFactory.IsWorker(newBug))
+                _levelInfo.Workers.Add(newBug);
+            else if (_antFactory.IsPredator(newBug))
+                _levelInfo.Predators.Add(newBug);
+
             RegisterBug(newBug);
         }
 
         private void HandleBugEat(BugController bug)
         {
+            if (_levelInfo.Workers.Remove(bug))
+                _levelInfo.EatenWorkersCount.Value++;
+            else if (_levelInfo.Predators.Remove(bug))
+                _levelInfo.EatenPredatorsCount.Value++;
+
             _antFactory.DestroyBug(bug);
         }
 

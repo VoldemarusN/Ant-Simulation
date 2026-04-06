@@ -24,15 +24,15 @@ namespace Core.Bug
             _searchFoodStrategy = searchFoodStrategy;
             _moveStrategy = moveStrategy;
             _reproduceStrategy = reproduceStrategy;
-
-            _reproduceStrategy.Reproduced.Subscribe(Reproduced);
-            _reproduceStrategy.Reproduced.Subscribe(_ => FoodCount.Value = 0);
-            FoodCount.Subscribe(_reproduceStrategy.SetFoodCount);
         }
 
         public void Initialize(float? lifetime = null)
         {
             _cancellationDisposable = new CompositeDisposable();
+
+            _reproduceStrategy.Reproduced.Subscribe(Reproduced).AddTo(_cancellationDisposable);
+            _reproduceStrategy.Reproduced.Subscribe(_ => FoodCount.Value = 0).AddTo(_cancellationDisposable);
+            FoodCount.Subscribe(_reproduceStrategy.SetFoodCount).AddTo(_cancellationDisposable);
 
             if (lifetime.HasValue && lifetime.Value > 0)
             {

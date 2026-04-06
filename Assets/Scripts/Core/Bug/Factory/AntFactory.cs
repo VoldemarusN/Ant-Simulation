@@ -17,6 +17,9 @@ namespace Core.Bug.Factory
         private readonly ObjectPoolFacade<BugView> _workerPool;
         private readonly ObjectPoolFacade<BugView> _predatorPool;
 
+        private readonly HashSet<BugController> _workerSet = new();
+        private readonly HashSet<BugController> _predatorSet = new();
+
         public AntFactory(AssetProvider assetProvider, WorkerSettings workerSettings, PredatorSettings predatorSettings, ILevelInfo levelInfo)
         {
             _workerSettings = workerSettings;
@@ -35,7 +38,7 @@ namespace Core.Bug.Factory
             var reproduceStrategy = new WorkerReproduceStrategy(_workerSettings, _levelInfo, this);
             var controller = new BugController(view, searchStrategy, moveStrategy, reproduceStrategy);
             controller.Initialize();
-
+            _workerSet.Add(controller);
             return controller;
         }
 
@@ -50,29 +53,24 @@ namespace Core.Bug.Factory
                         _levelInfo.Workers.Select(x => x.View)
                     });
             var moveStrategy = new BasicMoveStrategy(view, _predatorSettings.Speed);
-            var reproduceStrategy = new PredatorReproduceStrategy(_predatorSettings, _levelInfo, this);
+            var reproduceStrategy = new PredatorReproduceStrategy(_predatorSettings, this);
             var controller = new BugController(view, searchStrategy, moveStrategy, reproduceStrategy);
             controller.Initialize(_predatorSettings.LifetimeInSeconds);
-
+            _predatorSet.Add(controller);
             return controller;
         }
 
         public void DestroyBug(BugController bug)
         {
             bug.Dispose();
-            
-            if (_levelInfo.Workers.Contains(bug))
-            {
-                _levelInfo.Workers.Remove(bug);
-                _levelInfo.EatenWorkersCount.Value++;
+
+            if (_workerSet.Remove(bug))
                 _workerPool.Return(bug.View);
-            }
-            else if (_levelInfo.Predators.Contains(bug))
-            {
-                _levelInfo.Predators.Remove(bug);
-                _levelInfo.EatenPredatorsCount.Value++;
+            else if (_predatorSet.Remove(bug))
                 _predatorPool.Return(bug.View);
-            }
         }
+
+        public bool IsWorker(BugController bug) => _workerSet.Contains(bug);
+        public bool IsPredator(BugController bug) => _predatorSet.Contains(bug);
     }
 }

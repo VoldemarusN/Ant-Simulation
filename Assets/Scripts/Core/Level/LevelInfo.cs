@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Core.Bug;
 using Core.Food;
 using UniRx;
@@ -20,11 +19,9 @@ namespace Core.Level
 
         public IEnumerable<Transform> GetAllSpawnedObjects()
         {
-            var spawnedObjects = new List<Transform>(Workers.Count + Predators.Count + Vegetables.Count);
-            spawnedObjects.AddRange(Workers.Select(x => x.View.transform));
-            spawnedObjects.AddRange(Predators.Select(x => x.View.transform));
-            spawnedObjects.AddRange(Vegetables.Select(x => x.transform));
-            return spawnedObjects;
+            foreach (var w in Workers) yield return w.View.transform;
+            foreach (var p in Predators) yield return p.View.transform;
+            foreach (var v in Vegetables) yield return v.transform;
         }
     }
 }

@@ -13,11 +13,6 @@ namespace Core.Bug
             _agent.enabled = false;
         }
 
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-        }
-
         private void OnDisable()
         {
             _agent.enabled = false;
