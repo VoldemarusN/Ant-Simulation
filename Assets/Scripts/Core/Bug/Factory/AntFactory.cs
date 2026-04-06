@@ -35,7 +35,7 @@ namespace Core.Bug.Factory
             var view = _workerPool.Rent();
             var behaviors = new IBugBehavior[]
             {
-                new SearchNearestFoodBehavior(_levelInfo.Vegetables.Cast<FoodTarget>()),
+                new SearchNearestFoodBehavior(_levelInfo.Vegetables),
                 new MoveBehavior(_workerSettings.Speed),
                 new EatOnContactBehavior(),
                 new WorkerReproduceBehavior(_workerSettings, _levelInfo, this),
@@ -52,7 +52,7 @@ namespace Core.Bug.Factory
             var behaviors = new IBugBehavior[]
             {
                 new SearchNearestFoodBehavior(
-                    _levelInfo.Vegetables.Cast<FoodTarget>(),
+                    _levelInfo.Vegetables,
                     _levelInfo.Predators.Select(x => (FoodTarget)x.View),
                     _levelInfo.Workers.Select(x => (FoodTarget)x.View)),
                 new MoveBehavior(_predatorSettings.Speed),
