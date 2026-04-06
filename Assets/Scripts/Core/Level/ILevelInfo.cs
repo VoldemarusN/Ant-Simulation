@@ -1,15 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using Core.Bug;
+using Core.Food;
+using UniRx;
 using UnityEngine;
-using Views;
-using Views.Bug;
 
-namespace Core
+namespace Core.Level
 {
     public interface ILevelInfo
     {
         List<VegetableTarget> Vegetables { get; }
         List<BugController> Workers { get; }
         List<BugController> Predators { get; }
+        
+        ReactiveProperty<int> EatenWorkersCount { get; }
+        ReactiveProperty<int> EatenPredatorsCount { get; }
 
         IEnumerable<Transform> GetAllSpawnedObjects();
     }

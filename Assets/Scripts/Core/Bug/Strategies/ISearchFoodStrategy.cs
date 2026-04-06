@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
-using Views;
+﻿using Core.Food;
 
-public interface ISearchFoodStrategy
+namespace Core.Bug.Strategies
 {
-    public FoodTarget Target { get; set; }
-    void SearchFood();
+    public interface ISearchFoodStrategy
+    {
+        public FoodTarget Target { get; set; }
+        void SearchFood();
+    }
 }

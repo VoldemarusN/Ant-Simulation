@@ -1,20 +1,17 @@
-using Core.Bug.Strategies;
-using UnityEngine;
-using Views;
+using Core.Food;
 
-namespace Views.Bug.Strategies.Implementations
+namespace Core.Bug.Strategies.Implementations
 {
     public class BasicMoveStrategy : IMoveStrategy
     {
         private readonly BugView _bugView;
-        private readonly float _speed;
-        
+
         private FoodTarget _target;
 
         public BasicMoveStrategy(BugView bugView, float speed)
         {
             _bugView = bugView;
-            _speed = speed;
+            _bugView.SetAgentSpeed(speed);
         }
 
         public void SetTarget(FoodTarget target)
@@ -26,10 +23,7 @@ namespace Views.Bug.Strategies.Implementations
         {
             if (_target == null) return;
 
-            _bugView.transform.position = Vector3.MoveTowards(
-                _bugView.transform.position,
-                _target.transform.position,
-                _speed * Time.deltaTime);
+            _bugView.MoveTo(_target.transform.position);
         }
     }
 }

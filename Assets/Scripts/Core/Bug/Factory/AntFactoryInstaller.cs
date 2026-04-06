@@ -1,8 +1,7 @@
-﻿using Core.Bug.Factory;
-using UnityEngine;
+﻿using UnityEngine;
 using Zenject;
 
-namespace Views.Bug.Factory
+namespace Core.Bug.Factory
 {
     public class AntFactoryInstaller : MonoInstaller
     {

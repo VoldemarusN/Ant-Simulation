@@ -1,5 +1,3 @@
-using Views.Bug;
-
 namespace Core.Bug.Factory
 {
     public interface IAntFactory

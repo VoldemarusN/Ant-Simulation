@@ -12,7 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f20e8ded1e1443cbf132d3302678d45, type: 3}
   m_Name: Simulation Settings
   m_EditorClassIdentifier: 
-  _workerSpeed: 0
-  _predatorSpeed: 0
   _spawnSafeZone: 2
-  _foodSpawnPeriod: 5
+  _foodSpawnPeriod: 0.5

@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Views;
+using Core.Food;
 
-namespace Views.Bug.Strategies.Implementations
+namespace Core.Bug.Strategies.Implementations
 {
     public class SearchVegetableFoodStrategy : SearchNearestFoodStrategy
     {

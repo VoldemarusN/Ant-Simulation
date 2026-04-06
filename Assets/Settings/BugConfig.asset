@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: BugConfig
   m_EditorClassIdentifier: 
   _workerSettings:
-    _speed: 5
+    _speed: 10
     _foodAmountToSplit: 2
     _chanceToCreatePredator: 0.1
     _bugAmountToCreatePredator: 10
   _predatorSettings:
-    _speed: 5
+    _speed: 10
     _foodAmountToSplit: 3
     _lifetimeInSeconds: 10

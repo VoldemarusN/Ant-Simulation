@@ -52,6 +52,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Predator Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 1632093383395324860, guid: ed8e24a3b3bda8841adf7092057dfa63, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2934268908514642729, guid: ed8e24a3b3bda8841adf7092057dfa63, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: a4b62a69d54e80347bd546999c6d4b9e, type: 2}
     - target: {fileID: 7159775753970103196, guid: ed8e24a3b3bda8841adf7092057dfa63, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 

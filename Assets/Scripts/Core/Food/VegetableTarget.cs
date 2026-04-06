@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Views
+﻿namespace Core.Food
 {
     public class VegetableTarget : FoodTarget
     {

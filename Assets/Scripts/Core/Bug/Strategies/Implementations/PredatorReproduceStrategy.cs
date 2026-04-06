@@ -1,9 +1,9 @@
-﻿using Core;
-using Core.Bug.Factory;
-using Core.Bug.Strategies;
+﻿using Core.Bug.Factory;
+using Core.Bug.Settings;
+using Core.Level;
 using UniRx;
 
-namespace Views.Bug.Strategies.Implementations
+namespace Core.Bug.Strategies.Implementations
 {
     public class PredatorReproduceStrategy : IReproduceStrategy
     {

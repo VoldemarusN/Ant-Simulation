@@ -1,4 +1,4 @@
-﻿using Views;
+﻿using Core.Food;
 
 namespace Core.Bug.Strategies
 {

@@ -1,11 +1,10 @@
-﻿using System;
-using Core;
-using Core.Bug.Factory;
-using Core.Bug.Strategies;
+﻿using Core.Bug.Factory;
+using Core.Bug.Settings;
+using Core.Level;
 using UniRx;
 using Random = UnityEngine.Random;
 
-namespace Views.Bug.Strategies.Implementations
+namespace Core.Bug.Strategies.Implementations
 {
     public class WorkerReproduceStrategy : IReproduceStrategy
     {
@@ -26,21 +25,20 @@ namespace Views.Bug.Strategies.Implementations
         {
             if (count >= _workerSettings.FoodAmountToSplit)
             {
-                if (_levelInfo.Workers.Count < _workerSettings.BugAmountToCreatePredator)
+                if (_levelInfo.Workers.Count > _workerSettings.BugAmountToCreatePredator)
                 {
                     if (Random.Range(0, 100) < _workerSettings.ChanceToCreatePredator * 100)
                     {
-                        var instance = _antFactory.CreatePredatorBug();
-                        _levelInfo.Predators.Add(instance);
-                        Reproduced.OnNext(instance);
-                    }
-                    else
-                    {
-                        var instance = _antFactory.CreateWorkerBug();
-                        _levelInfo.Workers.Add(instance);
-                        Reproduced.OnNext(instance);
+                        var predator = _antFactory.CreatePredatorBug();
+                        _levelInfo.Predators.Add(predator);
+                        Reproduced.OnNext(predator);
+                        return;
                     }
                 }
+
+                var worker = _antFactory.CreateWorkerBug();
+                _levelInfo.Workers.Add(worker);
+                Reproduced.OnNext(worker);
             }
         }
     }

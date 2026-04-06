@@ -1,8 +1,8 @@
+using Core.Bug;
+using Core.Food;
 using UnityEngine;
-using Views.Bug.Strategies;
-using Views.Bug.Strategies.Implementations;
 
-namespace Views.Bug
+namespace Assets
 {
     [CreateAssetMenu(fileName = "BugAssetProvider", menuName = "Ant Simulation/Bug Asset Provider")]
     public class AssetProvider : ScriptableObject

@@ -1,8 +1,7 @@
-﻿using Core;
-using UnityEngine;
+﻿using UnityEngine;
 using Zenject;
 
-namespace DefaultNamespace
+namespace Core.Level
 {
     public class LevelPositionServiceInstaller : MonoInstaller
     {

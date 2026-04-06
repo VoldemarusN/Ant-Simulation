@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-using UnityEngine.Serialization;
 using Zenject;
 
-namespace Views.Bug
+namespace Assets
 {
     public class AssetProviderInstaller : MonoInstaller
     {

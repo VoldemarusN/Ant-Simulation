@@ -13,6 +13,7 @@ public sealed class ObjectPoolFacade<T> : ObjectPoolBase<T> where T : MonoBehavi
         _parent = parent ?? new GameObject($"Pool<{typeof(T).Name}>").transform;
         _activateOnRent = activateOnRent;
         
+        prefab.gameObject.SetActive(false);
         Prewarm(capacity);
     }
 

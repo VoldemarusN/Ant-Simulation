@@ -1,5 +1,4 @@
 ﻿using UniRx;
-using Views.Bug;
 
 namespace Core.Bug.Strategies
 {

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Food;
 using UnityEngine;
-using Views;
 
-namespace Views.Bug.Strategies.Implementations
+namespace Core.Bug.Strategies.Implementations
 {
     public class SearchNearestFoodStrategy : ISearchFoodStrategy
     {
@@ -25,6 +25,8 @@ namespace Views.Bug.Strategies.Implementations
 
             foreach (var target in _targets.SelectMany(x => x))
             {
+                if (target == _bugView)  continue;
+                
                 var distance = Vector3.Distance(_bugView.transform.position, target.transform.position);
                 if (distance < minDistance)
                 {

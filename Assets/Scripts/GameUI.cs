@@ -1,21 +1,27 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 
-namespace DefaultNamespace
+public class GameUI : MonoBehaviour
 {
-    public class GameUI : MonoBehaviour
+    [SerializeField] private TextMeshProUGUI _predatorCount;
+    [SerializeField] private TextMeshProUGUI _workerCount;
+
+    private string _predatorFormat;
+    private string _workerFormat;
+
+    private void Awake()
     {
-        [SerializeField] private TextMeshProUGUI _predatorCount;
-        [SerializeField] private TextMeshProUGUI _workerCount;
+        _predatorFormat = _predatorCount.text;
+        _workerFormat = _workerCount.text;
+    }
 
-        public void SetWorkerCount(int count)
-        {
-            _workerCount.text = string.Format(_workerCount.text, count.ToString());
-        }
+    public void SetWorkerCount(int count)
+    {
+        _workerCount.text = string.Format(_workerFormat, count);
+    }
 
-        public void SetPredatorCount(int count)
-        {
-            _predatorCount.text = string.Format(_predatorCount.text, count.ToString());
-        }
+    public void SetPredatorCount(int count)
+    {
+        _predatorCount.text = string.Format(_predatorFormat, count);
     }
 }

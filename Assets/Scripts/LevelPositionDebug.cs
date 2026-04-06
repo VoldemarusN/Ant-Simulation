@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using Zenject;
 using Core;
+using Core.Level;
 
 public class LevelPositionDebug : MonoBehaviour
 {

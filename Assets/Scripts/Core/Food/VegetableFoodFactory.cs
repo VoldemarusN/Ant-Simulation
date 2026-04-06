@@ -1,10 +1,7 @@
-﻿using System;
+﻿using Assets;
 using UnityEngine;
-using uPools;
-using Views;
-using Views.Bug;
 
-namespace Core
+namespace Core.Food
 {
     public class VegetableFoodFactory
     {

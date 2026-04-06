@@ -1,88 +1,51 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Threading;
-using Core.Bug.Factory;
-using DefaultNamespace;
-using UniRx;
-using UnityEngine;
-using Views;
-using Views.Bug;
+using Core.Services;
 using Zenject;
 
 namespace Core
 {
     public class Game : IInitializable, IDisposable
     {
-        private readonly SimulationSettings _settings;
-        private readonly IAntFactory _antFactory;
-        private readonly ILevelInfo _levelInfo;
-        private readonly GameUI _gameUI;
-        private readonly VegetableFoodFactory _vegetableFoodFactory;
-        private readonly LevelPositionService _levelPositionService;
+        private readonly IFoodSpawner _foodSpawner;
+        private readonly IBugManager _bugManager;
+        private readonly IUIUpdater _uiUpdater;
 
-        private readonly CompositeDisposable _cancellationDisposable;
-
-        public Game(LevelPositionService levelPositionService, SimulationSettings settings, VegetableFoodFactory vegetableFoodFactory,
-            IAntFactory antFactory, ILevelInfo levelInfo, GameUI gameUI)
+        public Game(
+            IFoodSpawner foodSpawner,
+            IBugManager bugManager,
+            IUIUpdater uiUpdater)
         {
-            _antFactory = antFactory;
-            _levelInfo = levelInfo;
-            _gameUI = gameUI;
-            _vegetableFoodFactory = vegetableFoodFactory;
-            _settings = settings;
-            _levelPositionService = levelPositionService;
-            _cancellationDisposable = new CompositeDisposable();
+            _foodSpawner = foodSpawner;
+            _bugManager = bugManager;
+            _uiUpdater = uiUpdater;
         }
 
         public void Initialize()
         {
-            //spawn food
-            Observable.Interval(TimeSpan.FromSeconds(_settings.FoodSpawnPeriod))
-                .Subscribe(_ =>
-                {
-                    var pos = _levelPositionService.GetRandomPoint();
-                    var foodInstance = _vegetableFoodFactory.Spawn(pos);
-                    _levelInfo.Vegetables.Add(foodInstance);
-                    foodInstance.Eaten.Subscribe(OnVegetableTargetEaten)
-                        .AddTo(_cancellationDisposable);
-                })
-                .AddTo(_cancellationDisposable);
-
-            //spawn worker if there is no bugs
-            Observable.Interval(TimeSpan.FromSeconds(1))
-                .Subscribe(_ =>
-                {
-                    var totalBugs = _levelInfo.Workers.Count + _levelInfo.Predators.Count;
-                    if (totalBugs == 0)
-                    {
-                        var bug = _antFactory.CreateWorkerBug();
-                        bug.View.UpdatePosition(_levelPositionService.GetRandomPosition());
-                        _levelInfo.Workers.Add(bug);
-                    }
-                })
-                .AddTo(_cancellationDisposable);
-
-            Observable.EveryUpdate().Subscribe(_ =>
-            {
-                _gameUI.SetPredatorCount(_levelInfo.Predators.Count);
-                _gameUI.SetWorkerCount(_levelInfo.Workers.Count);
-            });
+            StartAllSystems();
         }
 
-        private void OnVegetableTargetEaten(FoodTarget vegetable)
+        private void StartAllSystems()
         {
-            _levelInfo.Vegetables.Remove(vegetable as VegetableTarget);
-            _vegetableFoodFactory.Despawn(vegetable as VegetableTarget);
+            _foodSpawner.StartSpawning();
+            _bugManager.StartManagement();
+            _uiUpdater.StartUpdating();
         }
 
+        private void StopAllSystems()
+        {
+            _foodSpawner.StopSpawning();
+            _bugManager.StopManagement();
+            _uiUpdater.StopUpdating();
+        }
 
         public void Dispose()
         {
-            _levelPositionService?.Dispose();
-            _cancellationDisposable?.Dispose();
+            StopAllSystems();
+            
+            _foodSpawner?.Dispose();
+            _bugManager?.Dispose();
+            _uiUpdater?.Dispose();
         }
     }
 }

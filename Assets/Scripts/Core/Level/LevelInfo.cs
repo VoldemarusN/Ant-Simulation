@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+using Core.Bug;
+using Core.Food;
+using UniRx;
 using UnityEngine;
-using Views;
-using Views.Bug;
 
-namespace Core
+namespace Core.Level
 {
     public class LevelInfo : ILevelInfo
     {
@@ -13,6 +14,9 @@ namespace Core
         public List<BugController> Workers { get; } = new();
 
         public List<BugController> Predators { get; } = new();
+        
+        public ReactiveProperty<int> EatenWorkersCount { get; } = new();
+        public ReactiveProperty<int> EatenPredatorsCount { get; } = new();
 
         public IEnumerable<Transform> GetAllSpawnedObjects()
         {

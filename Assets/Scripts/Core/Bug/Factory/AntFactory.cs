@@ -1,63 +1,78 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using Core;
-using Core.Bug.Factory;
-using uPools;
-using Views;
-using Views.Bug;
-using Views.Bug.Strategies;
-using Views.Bug.Strategies.Implementations;
+using Assets;
+using Core.Bug.Settings;
+using Core.Bug.Strategies.Implementations;
+using Core.Food;
+using Core.Level;
 
-public class AntFactory : IAntFactory
+namespace Core.Bug.Factory
 {
-    private readonly WorkerSettings _workerSettings;
-    private readonly PredatorSettings _predatorSettings;
-    private readonly ILevelInfo _levelInfo;
-
-    private readonly ObjectPoolFacade<BugView> _workerPool;
-    private readonly ObjectPoolFacade<BugView> _predatorPool;
-
-    public AntFactory(AssetProvider assetProvider, WorkerSettings workerSettings, PredatorSettings predatorSettings, ILevelInfo levelInfo)
+    public class AntFactory : IAntFactory
     {
-        _workerSettings = workerSettings;
-        _predatorSettings = predatorSettings;
-        _levelInfo = levelInfo;
+        private readonly WorkerSettings _workerSettings;
+        private readonly PredatorSettings _predatorSettings;
+        private readonly ILevelInfo _levelInfo;
 
-        _workerPool = new ObjectPoolFacade<BugView>(assetProvider.WorkerBugPrefab, 50);
-        _predatorPool = new ObjectPoolFacade<BugView>(assetProvider.PredatorBugPrefab, 50);
-    }
+        private readonly ObjectPoolFacade<BugView> _workerPool;
+        private readonly ObjectPoolFacade<BugView> _predatorPool;
 
-    public BugController CreateWorkerBug()
-    {
-        var view = _workerPool.Rent();
-        var searchStrategy = new SearchVegetableFoodStrategy(view, _levelInfo.Vegetables as List<VegetableTarget>);
-        var moveStrategy = new BasicMoveStrategy(view, _workerSettings.Speed);
-        var reproduceStrategy = new WorkerReproduceStrategy(_workerSettings, _levelInfo, this);
-        var controller = new BugController(view, searchStrategy, moveStrategy, reproduceStrategy);
+        public AntFactory(AssetProvider assetProvider, WorkerSettings workerSettings, PredatorSettings predatorSettings, ILevelInfo levelInfo)
+        {
+            _workerSettings = workerSettings;
+            _predatorSettings = predatorSettings;
+            _levelInfo = levelInfo;
 
-        return controller;
-    }
+            _workerPool = new ObjectPoolFacade<BugView>(assetProvider.WorkerBugPrefab, 50);
+            _predatorPool = new ObjectPoolFacade<BugView>(assetProvider.PredatorBugPrefab, 50);
+        }
 
-    public BugController CreatePredatorBug()
-    {
-        var view = _predatorPool.Rent();
-        var searchStrategy =
-            new SearchNearestFoodStrategy(view,
-                new IEnumerable<FoodTarget>[]
-                {
-                    _levelInfo.Vegetables, _levelInfo.Predators.Select(x => x.View),
-                    _levelInfo.Workers.Select(x => x.View)
-                });
-        var moveStrategy = new BasicMoveStrategy(view, _predatorSettings.Speed);
-        var reproduceStrategy = new PredatorReproduceStrategy(_predatorSettings, _levelInfo, this);
-        var controller = new BugController(view, searchStrategy, moveStrategy, reproduceStrategy);
+        public BugController CreateWorkerBug()
+        {
+            var view = _workerPool.Rent();
+            var searchStrategy = new SearchVegetableFoodStrategy(view, _levelInfo.Vegetables);
+            var moveStrategy = new BasicMoveStrategy(view, _workerSettings.Speed);
+            var reproduceStrategy = new WorkerReproduceStrategy(_workerSettings, _levelInfo, this);
+            var controller = new BugController(view, searchStrategy, moveStrategy, reproduceStrategy);
+            controller.Initialize();
 
-        return controller;
-    }
+            return controller;
+        }
 
-    public void DestroyBug(BugController bug)
-    {
-        bug.Dispose();
-        _workerPool.Return(bug.View);
+        public BugController CreatePredatorBug()
+        {
+            var view = _predatorPool.Rent();
+            var searchStrategy =
+                new SearchNearestFoodStrategy(view,
+                    new IEnumerable<FoodTarget>[]
+                    {
+                        _levelInfo.Vegetables, _levelInfo.Predators.Select(x => x.View),
+                        _levelInfo.Workers.Select(x => x.View)
+                    });
+            var moveStrategy = new BasicMoveStrategy(view, _predatorSettings.Speed);
+            var reproduceStrategy = new PredatorReproduceStrategy(_predatorSettings, _levelInfo, this);
+            var controller = new BugController(view, searchStrategy, moveStrategy, reproduceStrategy);
+            controller.Initialize(_predatorSettings.LifetimeInSeconds);
+
+            return controller;
+        }
+
+        public void DestroyBug(BugController bug)
+        {
+            bug.Dispose();
+            
+            if (_levelInfo.Workers.Contains(bug))
+            {
+                _levelInfo.Workers.Remove(bug);
+                _levelInfo.EatenWorkersCount.Value++;
+                _workerPool.Return(bug.View);
+            }
+            else if (_levelInfo.Predators.Contains(bug))
+            {
+                _levelInfo.Predators.Remove(bug);
+                _levelInfo.EatenPredatorsCount.Value++;
+                _predatorPool.Return(bug.View);
+            }
+        }
     }
 }

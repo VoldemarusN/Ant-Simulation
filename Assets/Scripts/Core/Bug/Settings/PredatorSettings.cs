@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Views.Bug
+namespace Core.Bug.Settings
 {
     [Serializable]
     public class PredatorSettings
