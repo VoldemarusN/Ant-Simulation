@@ -1,8 +1,8 @@
 using System;
-using Core.Bug.Strategies;
+using System.Collections.Generic;
+using Core.Bug.Behaviors;
+using Core.Food;
 using UniRx;
-using UnityEngine;
-using Zenject;
 
 namespace Core.Bug
 {
@@ -10,71 +10,34 @@ namespace Core.Bug
     {
         public BugView View { get; }
         public Subject<BugController> Reproduced { get; } = new();
+        public ReactiveProperty<int> FoodCount { get; } = new();
 
-        private readonly ISearchFoodStrategy _searchFoodStrategy;
-        private readonly IMoveStrategy _moveStrategy;
-        private readonly IReproduceStrategy _reproduceStrategy;
+        public FoodTarget CurrentTarget { get; set; }
 
-        private ReactiveProperty<int> FoodCount { get; } = new();
-        private CompositeDisposable _cancellationDisposable;
+        private readonly IReadOnlyList<IBugBehavior> _behaviors;
+        private CompositeDisposable _disposable;
 
-        public BugController(BugView view, ISearchFoodStrategy searchFoodStrategy, IMoveStrategy moveStrategy, IReproduceStrategy reproduceStrategy)
+        public BugController(BugView view, IReadOnlyList<IBugBehavior> behaviors)
         {
             View = view;
-            _searchFoodStrategy = searchFoodStrategy;
-            _moveStrategy = moveStrategy;
-            _reproduceStrategy = reproduceStrategy;
+            _behaviors = behaviors;
         }
 
-        public void Initialize(float? lifetime = null)
+        public void Initialize()
         {
-            _cancellationDisposable = new CompositeDisposable();
+            _disposable = new CompositeDisposable();
 
-            _reproduceStrategy.Reproduced.Subscribe(Reproduced).AddTo(_cancellationDisposable);
-            _reproduceStrategy.Reproduced.Subscribe(_ => FoodCount.Value = 0).AddTo(_cancellationDisposable);
-            FoodCount.Subscribe(_reproduceStrategy.SetFoodCount).AddTo(_cancellationDisposable);
-
-            if (lifetime.HasValue && lifetime.Value > 0)
-            {
-                FoodCount
-                    .Select(_ => Observable.Timer(TimeSpan.FromSeconds(lifetime.Value)))
-                    .Switch()
-                    .Subscribe(_ => View.Eat())
-                    .AddTo(_cancellationDisposable);
-            }
-
-            int counter = 0;
-            Observable.EveryUpdate()
-                .Where(_ => ++counter % 5 == 0)
-                .Subscribe(_ =>
-                {
-                    _searchFoodStrategy.SearchFood();
-                    _moveStrategy.SetTarget(_searchFoodStrategy.Target);
-                })
-                .AddTo(_cancellationDisposable);
-
-            Observable.EveryUpdate().Subscribe(_ => _moveStrategy.Move())
-                .AddTo(_cancellationDisposable);
-
-            Observable.EveryUpdate().Subscribe(_ => TryToEatTarget())
-                .AddTo(_cancellationDisposable);
+            foreach (var behavior in _behaviors)
+                behavior.Initialize(this);
         }
 
         public void Dispose()
         {
-            FoodCount.Value = 0;
-            _cancellationDisposable?.Dispose();
-        }
+            foreach (var behavior in _behaviors)
+                behavior.Dispose();
 
-        private void TryToEatTarget()
-        {
-            if (_searchFoodStrategy.Target && Vector3.Distance(_searchFoodStrategy.Target.transform.position, View.transform.position) < 3f)
-            {
-                _searchFoodStrategy.Target.Eat();
-                _searchFoodStrategy.Target = null;
-
-                FoodCount.Value++;
-            }
+            FoodCount.Dispose();
+            _disposable?.Dispose();
         }
     }
 }

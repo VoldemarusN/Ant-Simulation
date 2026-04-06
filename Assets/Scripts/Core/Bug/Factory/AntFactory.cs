@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Assets;
+using Core.Bug.Behaviors;
 using Core.Bug.Settings;
-using Core.Bug.Strategies.Implementations;
 using Core.Food;
 using Core.Level;
 
@@ -33,10 +33,14 @@ namespace Core.Bug.Factory
         public BugController CreateWorkerBug()
         {
             var view = _workerPool.Rent();
-            var searchStrategy = new SearchVegetableFoodStrategy(view, _levelInfo.Vegetables);
-            var moveStrategy = new BasicMoveStrategy(view, _workerSettings.Speed);
-            var reproduceStrategy = new WorkerReproduceStrategy(_workerSettings, _levelInfo, this);
-            var controller = new BugController(view, searchStrategy, moveStrategy, reproduceStrategy);
+            var behaviors = new IBugBehavior[]
+            {
+                new SearchNearestFoodBehavior(_levelInfo.Vegetables.Cast<FoodTarget>()),
+                new MoveBehavior(_workerSettings.Speed),
+                new EatOnContactBehavior(),
+                new WorkerReproduceBehavior(_workerSettings, _levelInfo, this),
+            };
+            var controller = new BugController(view, behaviors);
             controller.Initialize();
             _workerSet.Add(controller);
             return controller;
@@ -45,17 +49,19 @@ namespace Core.Bug.Factory
         public BugController CreatePredatorBug()
         {
             var view = _predatorPool.Rent();
-            var searchStrategy =
-                new SearchNearestFoodStrategy(view,
-                    new IEnumerable<FoodTarget>[]
-                    {
-                        _levelInfo.Vegetables, _levelInfo.Predators.Select(x => x.View),
-                        _levelInfo.Workers.Select(x => x.View)
-                    });
-            var moveStrategy = new BasicMoveStrategy(view, _predatorSettings.Speed);
-            var reproduceStrategy = new PredatorReproduceStrategy(_predatorSettings, this);
-            var controller = new BugController(view, searchStrategy, moveStrategy, reproduceStrategy);
-            controller.Initialize(_predatorSettings.LifetimeInSeconds);
+            var behaviors = new IBugBehavior[]
+            {
+                new SearchNearestFoodBehavior(
+                    _levelInfo.Vegetables.Cast<FoodTarget>(),
+                    _levelInfo.Predators.Select(x => (FoodTarget)x.View),
+                    _levelInfo.Workers.Select(x => (FoodTarget)x.View)),
+                new MoveBehavior(_predatorSettings.Speed),
+                new EatOnContactBehavior(),
+                new PredatorReproduceBehavior(_predatorSettings, this),
+                new LifetimeBehavior(_predatorSettings.LifetimeInSeconds),
+            };
+            var controller = new BugController(view, behaviors);
+            controller.Initialize();
             _predatorSet.Add(controller);
             return controller;
         }
